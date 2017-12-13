@@ -132,7 +132,7 @@ public class PetProvider extends ContentProvider {
 
         if (name == null)
             throw new IllegalArgumentException("Pet requires a name");
-        if (gender ==null || !PetEntry.isValidGender(gender))
+        if (gender == null || !PetEntry.isValidGender(gender))
             throw new IllegalArgumentException("Gender is not valid");
         if (weight == null || weight < 0)
             throw new IllegalArgumentException("Weight must positive");
@@ -157,8 +157,78 @@ public class PetProvider extends ContentProvider {
      * Updates the data at the given selection and selection arguments, with the new ContentValues.
      */
     @Override
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection,
+                      String[] selectionArgs) {
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case PETS:
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            case PET_ID:
+                // Para o código PET_ID, extraia o ID do URI,
+                // para que saibamos qual registro atualizar. Selection será "_id=?" and selection
+                // args será um String array contendo o atual ID.
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
+    }
+
+    /**
+     * Atualize pets no banco de dados com os content values dados. Aplique as mudanças aos registros
+     * especificados no selection e selection args (que podem ser 0 ou 1 ou mais pets).
+     * Retorne o número de registros que foram atualizados com sucesso.
+     */
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+
+        // Se não há valores a atualizar, então não tente atualizar o banco de dados
+        if (values.size() == 0) {
+            return 0;
+        }
+
+        // Se a chave {@link PetEntry#COLUMN_PET_NAME} é presente,
+        // checa se o valor do nome não é nulo.
+        if (values.containsKey(PetEntry.COLUMN_PET_NAME)) {
+            String name = values.getAsString(PetEntry.COLUMN_PET_NAME);
+            if (name == null) {
+                throw new IllegalArgumentException("Pet requires a name");
+            }
+        }
+
+        // Se a chave {@link PetEntry#COLUMN_PET_GENDER} é presente,
+        // checa se o valor do gênero é válido.
+        if (values.containsKey(PetEntry.COLUMN_PET_GENDER)) {
+            Integer gender = values.getAsInteger(PetEntry.COLUMN_PET_GENDER);
+            if (gender == null || !PetEntry.isValidGender(gender)) {
+                throw new IllegalArgumentException("Pet requires valid gender");
+            }
+        }
+
+        // Se a chave {@link PetEntry#COLUMN_PET_WEIGHT} é presente,
+        // checa se o valor do peso é válido.
+        if (values.containsKey(PetEntry.COLUMN_PET_WEIGHT)) {
+            // Checa se o peso é maior ou igual a 0 kg
+            Integer weight = values.getAsInteger(PetEntry.COLUMN_PET_WEIGHT);
+            if (weight != null && weight < 0) {
+                throw new IllegalArgumentException("Pet requires valid weight");
+            }
+        }
+
+        // Não precisamos checar a raça, qualquer valor é válido (incluindo nulo).
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        //long id = database.insert(PetEntry.TABLE_NAME, null, values);
+        int rows = database.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
+
+        // Se o ID é -1, então a inserção falhou. Logue um error e retorne nulo.
+        if (rows == 0) {
+            Log.e(LOG_TAG, "Nothing updated for " + uri);
+        }
+
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it
+        return rows;
     }
 
     /**
