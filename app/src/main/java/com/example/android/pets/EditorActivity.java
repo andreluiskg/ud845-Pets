@@ -15,8 +15,9 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -30,7 +31,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
 
 /**
@@ -42,22 +42,18 @@ public class EditorActivity extends AppCompatActivity {
      * EditText field to enter the pet's name
      */
     private EditText mNameEditText;
-
     /**
      * EditText field to enter the pet's breed
      */
     private EditText mBreedEditText;
-
     /**
      * EditText field to enter the pet's weight
      */
     private EditText mWeightEditText;
-
     /**
      * EditText field to enter the pet's gender
      */
     private Spinner mGenderSpinner;
-
     /**
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
@@ -123,7 +119,7 @@ public class EditorActivity extends AppCompatActivity {
         // This adds menu items to the app bar.
         getMenuInflater().inflate(R.menu.menu_editor, menu);
         return true;
-    }
+    } //catch(
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -151,9 +147,10 @@ public class EditorActivity extends AppCompatActivity {
 
     private void insertPet() {
 
-        PetDbHelper mDbHelper = new PetDbHelper(this);
+        /**PetDbHelper mDbHelper = new PetDbHelper(this);
 
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+         SQLiteDatabase db = mDbHelper.getWritableDatabase();
+         */
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, mNameEditText.getText().toString().trim());
@@ -162,13 +159,27 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT, Integer.parseInt(mWeightEditText.getText().toString().trim()));
 
         //retorna o id
-        long id = db.insert(PetEntry.TABLE_NAME, null, values);
+        //long id = db.insert(PetEntry.TABLE_NAME, null, values);
 
-        if (id == -1) {
-            Toast.makeText(this, "Error saving pet", Toast.LENGTH_LONG).show();
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+
+        if (newUri == null) {
+            // Se o novo conteúdo do URI é nulo, então houve um erro com inserção.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                    Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "Pet saved with id: " + Long.toString(id), Toast.LENGTH_LONG).show();
+            // Caso contrário, a inserção foi bem sucedida e podemos mostrar um toast.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_successful) + " " +
+                            ContentUris.parseId(newUri),
+                    Toast.LENGTH_LONG).show();
         }
-
     }
+
+    /**
+     if (id == -1) {
+     Toast.makeText(this, "Error saving pet", Toast.LENGTH_LONG).show();
+     } else {
+     Toast.makeText(this, "Pet saved with id: " + Long.toString(id), Toast.LENGTH_LONG).show();
+     }*/
+
 }

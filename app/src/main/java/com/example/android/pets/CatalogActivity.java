@@ -15,10 +15,11 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -26,8 +27,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.android.pets.data.PetDbHelper;
 import com.example.android.pets.data.PetContract.PetEntry;
 
 /**
@@ -61,12 +62,12 @@ public class CatalogActivity extends AppCompatActivity {
     private void displayDatabaseInfo() {
         // To access our database, we instantiate our subclass of SQLiteOpenHelper
         // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
+        //PetDbHelper mDbHelper = new PetDbHelper(this);
 
         // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        //SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        String[] project = new String[]{
+        String[] projection = new String[]{
                 PetEntry._ID,
                 PetEntry.COLUMN_PET_NAME,
                 PetEntry.COLUMN_PET_BREED,
@@ -74,7 +75,13 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_WEIGHT
         };
 
-        Cursor cursor = db.query(PetEntry.TABLE_NAME, project, null, null, null, null, null);
+        //Cursor cursor = db.query(PetEntry.TABLE_NAME, project, null, null, null, null, null);
+        Cursor cursor = getContentResolver().query(
+                PetEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
 
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
@@ -139,9 +146,10 @@ public class CatalogActivity extends AppCompatActivity {
 
     private void insertPet() {
 
-        PetDbHelper mPetDbHelper = new PetDbHelper(this);
+        /**PetDbHelper mPetDbHelper = new PetDbHelper(this);
 
-        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
+         SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
+         */
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, "Toto");
@@ -149,7 +157,13 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        long id = db.insert(PetEntry.TABLE_NAME, null, values);
+        //long id = db.insert(PetEntry.TABLE_NAME, null, values);
+
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+
+        Toast.makeText(this, getString(R.string.editor_insert_pet_successful) + " " +
+                        ContentUris.parseId(newUri),
+                Toast.LENGTH_LONG).show();
 
     }
 }

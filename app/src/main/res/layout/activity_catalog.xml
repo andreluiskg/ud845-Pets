@@ -11,8 +11,7 @@
      limitations under the License.
 -->
 <!-- Layout for the list of pets -->
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -22,7 +21,7 @@
         android:id="@+id/text_view_pet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/activity_margin"/>
+        android:padding="@dimen/activity_margin" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -31,5 +30,5 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_add_pet"/>
+        android:src="@drawable/ic_add_pet" />
 </RelativeLayout>
